@@ -59,22 +59,20 @@ jobs:
         with:
           workflow: baseline.yml
           workflow_conclusion: success
-          skip_unpack: true
           if_no_artifact_found: fail
-      - name: Output downloaded artifact information
-        run: |
-          echo "Downloaded artifact information: ${{ steps.download-baseline-artifact.outputs.artifacts }}"
+      - name: Rename cves.zip to the appropriate baseline artifact name
+        run: mv cves.zip ${{ fromJSON(steps.download-baseline-artifact.outputs.artifacts)[0].name }}
       - name: build delta files
         run: |
           ls ./.github/workflows/dist
           node ./.github/workflows/dist/index.js delta
-      # - name: create release with source code as artifacts
-      #   uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
-      #   with:
-      #     name: CVE ${{ needs.generate-name.outputs.v_current_run_timestamp }}
-      #     # body: Descriptions for CVE ${{ needs.generate-name.outputs.v_current_run_timestamp }} goes here
-      #     body_path: ./release_notes.md
-      #     tag_name: cve_${{ needs.generate-name.outputs.v_current_run_timestamp }}
-      #     files: |
-      #       release_notes.md
-      #       *.zip
+      - name: create release with source code as artifacts
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        with:
+          name: CVE ${{ needs.generate-name.outputs.v_current_run_timestamp }}
+          # body: Descriptions for CVE ${{ needs.generate-name.outputs.v_current_run_timestamp }} goes here
+          body_path: ./release_notes.md
+          tag_name: cve_${{ needs.generate-name.outputs.v_current_run_timestamp }}
+          files: |
+            release_notes.md
+            *.zip
